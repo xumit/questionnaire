@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Financial Planning Questionnaire</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: navy masthead, step rail, one card per step, sticky footer with Back / Next. Navy + brass to match the Excel planner. */
+:root{
+  --ink:#16223a; --muted:#5d6a82; --bg:#f3f4f7; --card:#ffffff; --line:#dfe3ea;
+  --navy:#1f3864; --brass:#b8902a; --brass-soft:#f6efdc; --field:#fbfaf6;
+  --good:#2f7a4a; --bad:#b3261e;
+  --display:"Bodoni Moda", Georgia, "Times New Roman", serif;
+  --body:"Manrope", "Segoe UI", Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#e8ecf4; --muted:#9aa6bd; --bg:#0f1524; --card:#172038; --line:#2a3552;
+    --navy:#2b4a82; --brass:#d4ae4f; --brass-soft:#2a2717; --field:#111a2e;
+    --good:#6cc48c; --bad:#ff8a80; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#e8ecf4; --muted:#9aa6bd; --bg:#0f1524; --card:#172038; --line:#2a3552;
+  --navy:#2b4a82; --brass:#d4ae4f; --brass-soft:#2a2717; --field:#111a2e;
+  --good:#6cc48c; --bad:#ff8a80; color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.mast{background:#1f3864;color:#fff;padding:28px 16px 64px}
+.mast .in{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:6px}
+.firm{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#d4ae4f;font-weight:700}
+.mast h1{font-family:var(--display);font-weight:600;font-size:clamp(28px,4vw,40px);margin:0;text-wrap:balance}
+.mast p{margin:0;color:#c9d2e3;max-width:64ch}
+main{max-width:1040px;margin:-44px auto 0;padding:0 16px 120px;display:flex;flex-direction:column;gap:16px}
+.rail{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;gap:6px;overflow-x:auto}
+.rail button{flex:1 0 auto;border:0;background:transparent;color:var(--muted);font:600 13px var(--body);padding:10px 12px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.rail button .n{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-size:11px}
+.rail button[aria-current="step"]{background:var(--navy);color:#fff}
+.rail button[aria-current="step"] .n{border-color:#d4ae4f;color:#d4ae4f}
+.rail button.done .n{background:var(--brass);border-color:var(--brass);color:#fff}
+.rail .grp{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);align-self:center;padding:0 4px 0 10px;font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px;display:none}
+.card.on{display:block}
+.card h2{font-family:var(--display);font-weight:600;font-size:26px;margin:0 0 4px}
+.card .lead{color:var(--muted);margin:0 0 20px;max-width:70ch}
+.subtabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 18px}
+.subtabs span{font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.subtabs span.cur{background:var(--brass-soft);border-color:var(--brass);color:var(--ink)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px}
+.full{grid-column:1/-1}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:var(--muted)}
+input,select,textarea{font:500 15px var(--body);color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;min-width:0}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brass);outline-offset:1px;border-color:var(--brass)}
+input.num{text-align:right;font-variant-numeric:tabular-nums}
+h3{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--navy);margin:22px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--brass)}
+:root[data-theme="dark"] h3{color:#d4ae4f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) h3{color:#d4ae4f}}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th{background:var(--navy);color:#fff;font-size:12px;font-weight:700;text-align:left;padding:9px 10px;white-space:nowrap}
+th.r{text-align:right}
+td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.lbl{font-weight:600;font-size:14px;padding-left:10px;white-space:nowrap}
+td.cls{font-size:12px;color:var(--brass);font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding-left:10px}
+tr.tot td{font-weight:700;background:var(--brass-soft);text-align:right;padding:10px;font-variant-numeric:tabular-nums}
+tr.tot td:first-child{text-align:left}
+.hint{font-size:12px;color:var(--muted);margin:8px 0 0}
+.foot{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:12px 16px}
+.foot .in{max-width:1040px;margin:0 auto;display:flex;gap:10px;align-items:center}
+.foot .save{font-size:12px;color:var(--muted);margin-right:auto}
+.btn{font:700 14px var(--body);border-radius:8px;padding:11px 20px;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.btn.pri{background:var(--navy);border-color:var(--navy);color:#fff}
+.btn.gold{background:var(--brass);border-color:var(--brass);color:#fff}
+.btn:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.sum div{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--field)}
+.sum b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.sum small{color:var(--muted);font-size:12px;font-weight:600}
+.consent{display:flex;gap:10px;align-items:flex-start;background:var(--brass-soft);border:1px solid var(--brass);border-radius:10px;padding:14px;margin:8px 0 16px}
+.consent input{width:18px;height:18px;margin-top:2px;flex:none}
+.msg{padding:14px 16px;border-radius:10px;margin-top:14px;display:none;font-weight:600}
+.msg.ok{display:block;background:color-mix(in srgb,var(--good) 14%,transparent);color:var(--good)}
+.msg.err{display:block;background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+.missing{border-color:var(--bad)!important}
+@media (max-width:640px){
+  .grid2,.sum{grid-template-columns:1fr}
+  .card{padding:18px}
+  .foot .save{display:none}
+}
+@media (prefers-reduced-motion:no-preference){.card.on{animation:fade .25s ease}@keyframes fade{from{opacity:.4}to{opacity:1}}}
+</style>
+</head>
+<body>
+<header class="mast"><div class="in">
+  <div class="firm" id="firmName">Xumit Capital</div>
+  <h1>Financial Planning Questionnaire</h1>
+  <p>Please share your details below so we can prepare your financial plan. Your answers save on this device as you type, so you can stop and come back. Leave blank anything that does not apply.</p>
+</div></header>
+
+<main>
+  <nav class="rail" id="rail" aria-label="Steps"></nav>
+  <form id="fp" novalidate autocomplete="on"></form>
+</main>
+
+<div class="foot"><div class="in">
+  <span class="save" id="saveNote">Your answers are saved on this device.</span>
+  <button type="button" class="btn" id="back">Back</button>
+  <button type="button" class="btn pri" id="next">Next</button>
+</div></div>
+
+<script>
+/* ===================== SETTINGS — edit these three lines ===================== */
+const FIRM_NAME  = "Xumit Capital";            // shown at the top of the page
+const SCRIPT_URL = "https://script.google.com/a/macros/xumitcapital.com/s/AKfycby5L8p6qTFiojQjSv2aibInHmyVb1s0xb3iGL6EUFezOlFoLBolXnl3SGebq7HuVRQ/exec"; // from Google Apps Script → Deploy → Web app URL
+const CONTACT    = "";                          // optional: your email, shown if submission fails
+/* ============================================================================ */
+
+document.getElementById("firmName").textContent = FIRM_NAME;
+
+const ASSETS = [
+  ["Equity",["Direct Equity","Equity Funds","Equity Mutual Funds","PMS","AIF","Unlisted Stocks","ESOP","PE/VC"]],
+  ["Debt",["Savings Account / Cash","Bank Fixed Deposit","Bonds / Debentures","Debt Mutual Funds","EPF / PPF","NPS","PMS","AIF"]],
+  ["Commodity",["Gold – ETF","Gold – Mutual Fund","Gold – Jewelry","Gold – Bar/Coin","Silver – ETF","Silver – Mutual Fund","Silver – Jewelry","Silver – Bar/Coin"]],
+  ["Real Estate",["Residential","Commercial","Plot/Land","REIT"]],
+  ["Others",["Art","Wine","Diamond","Other"]]
+];
+const LOANS = ["Home Loan","Car Loan","Education Loan","Personal Loan","Credit Card","Other Loan"];
+const INCOME = ["Salary","Bonus / Variable Pay","Business / Professional Income","Rental Income","Dividend & Interest","Other Income"];
+const EXPENSES = ["Household & Groceries","Rent","Utilities & Phone","Children's Education","Transport & Fuel","Medical","Lifestyle & Dining","Travel & Holidays","Domestic Help","Other Expenses"];
+const INSURANCE = [["Term Life – Self","Life"],["Term Life – Spouse","Life"],["Health – Family Floater","Health"],["Health – Super Top-up","Health"],["Critical Illness","Health"],["Personal Accident","Other"],["Endowment / ULIP / Money-back","Life"],["Home / Property","Other"],["Other","Other"]];
+
+const STEPS = [
+  {id:"personal",title:"Personal Info",group:"Personal Info"},
+  {id:"assets",title:"Assets",group:"Inputs"},
+  {id:"liabilities",title:"Liabilities",group:"Inputs"},
+  {id:"income",title:"Income",group:"Inputs"},
+  {id:"expense",title:"Expense",group:"Inputs"},
+  {id:"insurance",title:"Insurance",group:"Inputs"},
+  {id:"goals",title:"Goals",group:"Goals"},
+  {id:"review",title:"Review & Submit",group:"Submit"}
+];
+const INPUT_TABS = ["Assets","Liabilities","Income","Expense","Insurance"];
+
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"");
+const money = (id,ph="") => `<input class="num" inputmode="decimal" id="${id}" name="${id}" placeholder="${ph}" aria-label="${id}">`;
+const subtabs = cur => `<div class="subtabs">${INPUT_TABS.map(t=>`<span class="${t===cur?"cur":""}">${t}</span>`).join("")}</div>`;
+
+function build(){
+  const f = document.getElementById("fp");
+  let h = "";
+  // PERSONAL
+  h += `<section class="card" data-step="personal"><h2>Personal Information</h2>
+  <p class="lead">Tell us about yourself and your family.</p>
+  <div class="grid2">
+    <label class="f full">Full Name *<input id="p_name" name="p_name" autocomplete="name" required></label>
+    <label class="f full">Address<textarea id="p_address" name="p_address" rows="2" autocomplete="street-address"></textarea></label>
+    <label class="f">Phone Number *<input id="p_phone" name="p_phone" type="tel" autocomplete="tel" required></label>
+    <label class="f">Email Address *<input id="p_email" name="p_email" type="email" autocomplete="email" required></label>
+    <label class="f">Date of Birth<input id="p_dob" name="p_dob" type="date"></label>
+  </div>
+  <h3>Family</h3>
+  <div class="grid2">
+    <label class="f">Spouse Name<input id="sp_name" name="sp_name"></label>
+    <label class="f">Spouse Date of Birth<input id="sp_dob" name="sp_dob" type="date"></label>
+    ${[1,2,3].map(i=>`<label class="f">Child #${i} Name<input id="c${i}_name" name="c${i}_name"></label>
+    <label class="f">Child #${i} Date of Birth<input id="c${i}_dob" name="c${i}_dob" type="date"></label>`).join("")}
+  </div></section>`;
+
+  // ASSETS
+  h += `<section class="card" data-step="assets"><h2>Assets</h2>${subtabs("Assets")}
+  <p class="lead">Current market value of what you own. Enter Indian holdings in rupees and overseas holdings in US dollars.</p>
+  <div class="tbl"><table><thead><tr><th>Asset Class</th><th>Sub-category</th><th class="r">India (₹)</th><th class="r">International (US$)</th></tr></thead><tbody>`;
+  ASSETS.forEach(([cls,subs])=>subs.forEach((s,i)=>{
+    const k=`a_${slug(cls)}_${slug(s)}`;
+    h += `<tr><td class="cls">${i===0?esc(cls):""}</td><td class="lbl">${esc(s)}</td><td>${money(k+"_inr")}</td><td>${money(k+"_usd")}</td></tr>`;
+  }));
+  h += `<tr class="tot"><td colspan="2">Total</td><td id="t_a_inr">₹0</td><td id="t_a_usd">$0</td></tr></tbody></table></div></section>`;
+
+  // LIABILITIES
+  h += `<section class="card" data-step="liabilities"><h2>Liabilities</h2>${subtabs("Liabilities")}
+  <p class="lead">Outstanding loans. Use #2 if you have a second loan of the same type.</p>
+  <div class="tbl"><table><thead><tr><th>Loan</th><th class="r">India Outstanding (₹)</th><th class="r">International Outstanding (US$)</th><th class="r">Monthly EMI (₹)</th><th class="r">Interest Rate (%)</th><th class="r">Years Left</th></tr></thead><tbody>`;
+  LOANS.forEach(l=>["1","2"].forEach(n=>{
+    const k=`l_${slug(l)}_${n}`;
+    h += `<tr><td class="lbl">${esc(l)} #${n}</td><td>${money(k+"_inr")}</td><td>${money(k+"_usd")}</td><td>${money(k+"_emi")}</td><td>${money(k+"_rate","e.g. 8.5")}</td><td>${money(k+"_yrs")}</td></tr>`;
+  }));
+  h += `<tr class="tot"><td>Total</td><td id="t_l_inr">₹0</td><td id="t_l_usd">$0</td><td id="t_l_emi">₹0</td><td></td><td></td></tr></tbody></table></div></section>`;
+
+  // INCOME
+  h += `<section class="card" data-step="income"><h2>Income</h2>${subtabs("Income")}
+  <p class="lead">Annual income after tax, in rupees.</p>
+  <div class="tbl"><table><thead><tr><th>Source</th><th class="r">Self (₹ per year)</th><th class="r">Spouse (₹ per year)</th></tr></thead><tbody>`;
+  INCOME.forEach(s=>{const k=`i_${slug(s)}`; h += `<tr><td class="lbl">${esc(s)}</td><td>${money(k+"_self")}</td><td>${money(k+"_spouse")}</td></tr>`;});
+  h += `<tr class="tot"><td>Total</td><td id="t_i_self">₹0</td><td id="t_i_spouse">₹0</td></tr></tbody></table></div></section>`;
+
+  // EXPENSE
+  h += `<section class="card" data-step="expense"><h2>Expenses</h2>${subtabs("Expense")}
+  <p class="lead">Average monthly spending, in rupees. Leave out loan EMIs and insurance premiums, which you enter on their own tabs. For yearly costs such as holidays, divide by 12.</p>
+  <div class="tbl"><table><thead><tr><th>Category</th><th class="r">Monthly (₹)</th><th>Notes</th></tr></thead><tbody>`;
+  EXPENSES.forEach(s=>{const k=`e_${slug(s)}`; h += `<tr><td class="lbl">${esc(s)}</td><td>${money(k+"_m")}</td><td><input id="${k}_note" name="${k}_note" aria-label="${esc(s)} notes"></td></tr>`;});
+  h += `<tr class="tot"><td>Total per month</td><td id="t_e">₹0</td><td></td></tr></tbody></table></div></section>`;
+
+  // INSURANCE
+  h += `<section class="card" data-step="insurance"><h2>Insurance</h2>${subtabs("Insurance")}
+  <p class="lead">Policies you currently hold.</p>
+  <div class="tbl"><table><thead><tr><th>Policy Type</th><th>Insured Person</th><th class="r">Sum Assured (₹)</th><th class="r">Annual Premium (₹)</th><th>Renewal / Maturity</th></tr></thead><tbody>`;
+  INSURANCE.forEach(([s])=>{const k=`n_${slug(s)}`; h += `<tr><td class="lbl">${esc(s)}</td><td><input id="${k}_who" name="${k}_who" aria-label="${esc(s)} insured person"></td><td>${money(k+"_sa")}</td><td>${money(k+"_prem")}</td><td><input type="date" id="${k}_date" name="${k}_date" aria-label="${esc(s)} renewal date"></td></tr>`;});
+  h += `<tr class="tot"><td colspan="2">Total</td><td id="t_n_sa">₹0</td><td id="t_n_prem">₹0</td><td></td></tr></tbody></table></div></section>`;
+
+  // GOALS
+  h += `<section class="card" data-step="goals"><h2>Goals</h2>
+  <p class="lead">Up to five goals you are saving for, such as children's education, a home or retirement. Enter the amount you expect to need at the time, and how many years away it is.</p>
+  <div class="tbl"><table><thead><tr><th>#</th><th>Goal</th><th class="r">Future Value Needed (₹)</th><th class="r">Time Horizon (years)</th><th class="r">Already Set Aside (₹)</th></tr></thead><tbody>`;
+  [1,2,3,4,5].forEach(i=>{const k=`g${i}`; h += `<tr><td class="lbl">Goal #${i}</td><td><input id="${k}_name" name="${k}_name" aria-label="Goal ${i} name" placeholder="${["e.g. Child's higher education","e.g. Retirement","e.g. Holiday home","",""][i-1]}"></td><td>${money(k+"_fv")}</td><td>${money(k+"_yrs")}</td><td>${money(k+"_saved")}</td></tr>`;});
+  h += `</tbody></table></div><p class="hint">"Already Set Aside" is optional: money you have already earmarked for that goal.</p></section>`;
+
+  // REVIEW
+  h += `<section class="card" data-step="review"><h2>Review &amp; Submit</h2>
+  <p class="lead">Check the totals below. Use Back to change anything, then submit.</p>
+  <div class="sum" id="summary"></div>
+  <label class="consent"><input type="checkbox" id="consent"><span>I confirm this information is accurate to the best of my knowledge, and I consent to sharing it with <b class="firmTxt"></b> to prepare my financial plan.</span></label>
+  <button type="button" class="btn gold" id="submit">Submit my information</button>
+  <div class="msg" id="msg" role="status"></div></section>`;
+
+  f.innerHTML = h;
+  document.querySelectorAll(".firmTxt").forEach(e=>e.textContent=FIRM_NAME);
+
+  // rail
+  const rail = document.getElementById("rail"); let g="", rh="";
+  STEPS.forEach((s,i)=>{
+    if(s.group!==g && s.group==="Inputs"){ rh += `<span class="grp">Inputs</span>`; }
+    g=s.group;
+    rh += `<button type="button" data-i="${i}"><span class="n">${i+1}</span>${esc(s.title)}</button>`;
+  });
+  rail.innerHTML = rh;
+  rail.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>go(+b.dataset.i)));
+}
+
+/* ---------- numbers ---------- */
+const num = id => { const el=document.getElementById(id); if(!el) return 0; const v=parseFloat(String(el.value).replace(/[^0-9.\-]/g,"")); return isNaN(v)?0:v; };
+const inr = v => "₹" + Math.round(v).toLocaleString("en-IN");
+const usd = v => "$" + Math.round(v).toLocaleString("en-US");
+function fmtField(el){
+  if(!el.classList.contains("num")) return;
+  const raw = String(el.value).replace(/[^0-9.\-]/g,""); if(raw===""){el.value="";return;}
+  const v = parseFloat(raw); if(isNaN(v)){el.value="";return;}
+  if(/_rate$|_yrs$/.test(el.id)) { el.value = String(v); return; }
+  el.value = /_usd$/.test(el.id) ? v.toLocaleString("en-US") : v.toLocaleString("en-IN");
+}
+function totals(){
+  let ai=0,au=0; ASSETS.forEach(([c,s])=>s.forEach(x=>{const k=`a_${slug(c)}_${slug(x)}`; ai+=num(k+"_inr"); au+=num(k+"_usd");}));
+  let li=0,lu=0,le=0; LOANS.forEach(l=>["1","2"].forEach(n=>{const k=`l_${slug(l)}_${n}`; li+=num(k+"_inr"); lu+=num(k+"_usd"); le+=num(k+"_emi");}));
+  let is=0,isp=0; INCOME.forEach(s=>{const k=`i_${slug(s)}`; is+=num(k+"_self"); isp+=num(k+"_spouse");});
+  let e=0; EXPENSES.forEach(s=>e+=num(`e_${slug(s)}_m`));
+  let sa=0,pr=0; INSURANCE.forEach(([s])=>{const k=`n_${slug(s)}`; sa+=num(k+"_sa"); pr+=num(k+"_prem");});
+  let goals=0; [1,2,3,4,5].forEach(i=>{ if(document.getElementById(`g${i}_name`).value.trim()||num(`g${i}_fv`)) goals++; });
+  const T={ai,au,li,lu,le,is,isp,e,sa,pr,goals};
+  const set=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=v;};
+  set("t_a_inr",inr(ai)); set("t_a_usd",usd(au)); set("t_l_inr",inr(li)); set("t_l_usd",usd(lu)); set("t_l_emi",inr(le));
+  set("t_i_self",inr(is)); set("t_i_spouse",inr(isp)); set("t_e",inr(e)); set("t_n_sa",inr(sa)); set("t_n_prem",inr(pr));
+  return T;
+}
+function summary(){
+  const T=totals();
+  const cards=[["Assets in India",inr(T.ai)],["Assets abroad",usd(T.au)],["Loans outstanding",inr(T.li)+(T.lu?" + "+usd(T.lu):"")],
+    ["Annual income (post-tax)",inr(T.is+T.isp)],["Monthly expenses",inr(T.e)],["Goals entered",String(T.goals)]];
+  document.getElementById("summary").innerHTML = cards.map(([a,b])=>`<div><small>${a}</small><b>${b}</b></div>`).join("");
+}
+
+/* ---------- draft saving (this device only) ---------- */
+const KEY="fp_questionnaire_draft_v1";
+function saveDraft(){ try{ const d={}; document.querySelectorAll("#fp input:not([type=checkbox]),#fp textarea").forEach(el=>{ if(el.value) d[el.id]=el.value; }); localStorage.setItem(KEY,JSON.stringify(d)); }catch(e){} }
+function loadDraft(){ try{ const d=JSON.parse(localStorage.getItem(KEY)||"{}"); Object.entries(d).forEach(([k,v])=>{const el=document.getElementById(k); if(el) el.value=v;}); }catch(e){} }
+
+/* ---------- steps ---------- */
+let cur=0;
+function go(i){
+  if(i>cur && cur===0 && !checkPersonal()) return;
+  cur=Math.max(0,Math.min(STEPS.length-1,i));
+  document.querySelectorAll(".card").forEach(c=>c.classList.toggle("on",c.dataset.step===STEPS[cur].id));
+  document.querySelectorAll("#rail button").forEach((b,j)=>{ b.toggleAttribute("aria-current",j===cur); if(j===cur) b.setAttribute("aria-current","step"); b.classList.toggle("done",j<cur); });
+  document.getElementById("back").disabled = cur===0;
+  const nx=document.getElementById("next"); nx.style.display = cur===STEPS.length-1 ? "none" : "";
+  nx.textContent = cur===STEPS.length-2 ? "Review" : "Next";
+  if(STEPS[cur].id==="review") summary();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function checkPersonal(){
+  let ok=true;
+  ["p_name","p_phone","p_email"].forEach(id=>{ const el=document.getElementById(id); const bad=!el.value.trim()||(id==="p_email"&&!/^\S+@\S+\.\S+$/.test(el.value)); el.classList.toggle("missing",bad); if(bad) ok=false; });
+  if(!ok){ document.querySelector(".missing").focus(); }
+  return ok;
+}
+
+/* ---------- payload ---------- */
+function v(id){ const el=document.getElementById(id); return el ? el.value.trim() : ""; }
+function payload(){
+  const T=totals(); const rows=[];
+  const add=(section,group,item,field,val)=>{ if(val!=="" && val!==0 && val!=null) rows.push([section,group,item,field,val]); };
+  const n=id=>{ const x=num(id); return x?x:""; };
+  add("Personal Info","Client","Self","Full Name",v("p_name")); add("Personal Info","Client","Self","Address",v("p_address"));
+  add("Personal Info","Client","Self","Phone",v("p_phone")); add("Personal Info","Client","Self","Email",v("p_email")); add("Personal Info","Client","Self","Date of Birth",v("p_dob"));
+  add("Personal Info","Family","Spouse","Name",v("sp_name")); add("Personal Info","Family","Spouse","Date of Birth",v("sp_dob"));
+  [1,2,3].forEach(i=>{ add("Personal Info","Family",`Child #${i}`,"Name",v(`c${i}_name`)); add("Personal Info","Family",`Child #${i}`,"Date of Birth",v(`c${i}_dob`)); });
+  ASSETS.forEach(([c,s])=>s.forEach(x=>{const k=`a_${slug(c)}_${slug(x)}`; add("Assets",c,x,"India (₹)",n(k+"_inr")); add("Assets",c,x,"International (US$)",n(k+"_usd"));}));
+  LOANS.forEach(l=>["1","2"].forEach(m=>{const k=`l_${slug(l)}_${m}`; const it=`${l} #${m}`;
+    add("Liabilities",l,it,"India Outstanding (₹)",n(k+"_inr")); add("Liabilities",l,it,"International Outstanding (US$)",n(k+"_usd"));
+    add("Liabilities",l,it,"Monthly EMI (₹)",n(k+"_emi")); add("Liabilities",l,it,"Interest Rate (%)",n(k+"_rate")); add("Liabilities",l,it,"Years Left",n(k+"_yrs"));}));
+  INCOME.forEach(s=>{const k=`i_${slug(s)}`; add("Income","Annual post-tax",s,"Self (₹/yr)",n(k+"_self")); add("Income","Annual post-tax",s,"Spouse (₹/yr)",n(k+"_spouse"));});
+  EXPENSES.forEach(s=>{const k=`e_${slug(s)}`; add("Expense","Monthly",s,"Monthly (₹)",n(k+"_m")); add("Expense","Monthly",s,"Notes",v(k+"_note"));});
+  INSURANCE.forEach(([s,t])=>{const k=`n_${slug(s)}`; add("Insurance",t,s,"Insured Person",v(k+"_who")); add("Insurance",t,s,"Sum Assured (₹)",n(k+"_sa")); add("Insurance",t,s,"Annual Premium (₹)",n(k+"_prem")); add("Insurance",t,s,"Renewal / Maturity",v(k+"_date"));});
+  [1,2,3,4,5].forEach(i=>{const k=`g${i}`; const it=v(k+"_name")||`Goal #${i}`;
+    if(v(k+"_name")||num(k+"_fv")){ add("Goals",`Goal #${i}`,it,"Goal",v(k+"_name")); add("Goals",`Goal #${i}`,it,"Future Value (₹)",n(k+"_fv")); add("Goals",`Goal #${i}`,it,"Time Horizon (yrs)",n(k+"_yrs")); add("Goals",`Goal #${i}`,it,"Already Set Aside (₹)",n(k+"_saved")); }});
+  return {
+    submittedAt:new Date().toISOString(),
+    client:{name:v("p_name"),email:v("p_email"),phone:v("p_phone"),dob:v("p_dob"),spouse:v("sp_name")},
+    totals:{assetsInr:T.ai,assetsUsd:T.au,loansInr:T.li,loansUsd:T.lu,emiMonthly:T.le,incomeAnnual:T.is+T.isp,expensesMonthly:T.e,lifeAndHealthSumAssured:T.sa,premiumsAnnual:T.pr,goals:T.goals},
+    details:rows
+  };
+}
+
+/* ---------- submit ---------- */
+async function submit(){
+  const msg=document.getElementById("msg"); msg.className="msg";
+  if(!checkPersonal()){ go(0); return; }
+  if(!document.getElementById("consent").checked){ msg.className="msg err"; msg.textContent="Please tick the confirmation box above before submitting."; return; }
+  if(!/^https:\/\/script\.google\.com\//.test(SCRIPT_URL)){ msg.className="msg err"; msg.textContent="This form is not connected yet. The advisor needs to add the Google Script link in the page settings."; return; }
+  const btn=document.getElementById("submit"); btn.disabled=true; btn.textContent="Sending…";
+  const body=JSON.stringify(payload());
+  try{
+    let ok=false;
+    try{
+      const r=await fetch(SCRIPT_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body});
+      const j=await r.json(); ok=!!j.ok; if(!ok) throw new Error(j.error||"Server error");
+    }catch(e){
+      if(e instanceof TypeError){ await fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body}); ok=true; }
+      else throw e;
+    }
+    msg.className="msg ok"; msg.textContent=`Thank you. Your information has reached ${FIRM_NAME}. We will be in touch to discuss your plan.`;
+    btn.textContent="Submitted"; try{ localStorage.removeItem(KEY); }catch(e){}
+  }catch(e){
+    msg.className="msg err"; msg.textContent="We could not send your information. Please check your internet connection and try again."+(CONTACT?` If it keeps failing, contact ${CONTACT}.`:"");
+    btn.disabled=false; btn.textContent="Submit my information";
+  }
+}
+
+/* ---------- start ---------- */
+build(); loadDraft();
+document.querySelectorAll("#fp input.num").forEach(fmtField);
+totals();
+const form=document.getElementById("fp");
+form.addEventListener("submit",e=>e.preventDefault());
+form.addEventListener("input",()=>{ totals(); saveDraft(); });
+form.addEventListener("focusout",e=>{ if(e.target.classList&&e.target.classList.contains("num")){ fmtField(e.target); saveDraft(); } if(e.target.classList) e.target.classList.remove("missing"); });
+document.getElementById("next").addEventListener("click",()=>go(cur+1));
+document.getElementById("back").addEventListener("click",()=>go(cur-1));
+document.getElementById("submit").addEventListener("click",submit);
+go(0);
+</script>
+</body>
+</html>
